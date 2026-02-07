@@ -93,104 +93,137 @@
     <div id="nameDisplay"></div>
     <div id="subtitle">Happy Rose Day</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://unpkg.com/three@r128/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@r128/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://unpkg.com/three@r128/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://unpkg.com/three@r128/examples/js/postprocessing/UnrealBloomPass.js"></script>
 
     <script>
-        // ============ PERSONALIZATION ============
         const HER_NAME = "Rose Day Queen";
-
-        // ============ SCENE SETUP ============
         let scene, camera, renderer, composer;
         let rose, petalSystem;
         let windowWidth = window.innerWidth;
         let windowHeight = window.innerHeight;
+        let threeLoaded = false;
 
-        function init() {
-            // Scene
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0a0005);
-
-            // Camera
-            camera = new THREE.PerspectiveCamera(75, windowWidth / windowHeight, 0.1, 1000);
-            camera.position.z = 8;
-
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(windowWidth, windowHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            document.body.appendChild(renderer.domElement);
-
-            // Post-processing with Bloom
-            composer = new THREE.EffectComposer(renderer);
-            const renderPass = new THREE.RenderPass(scene, camera);
-            composer.addPass(renderPass);
-
-            const bloomPass = new THREE.UnrealBloomPass(
-                new THREE.Vector2(windowWidth, windowHeight),
-                1.5,
-                0.4,
-                0.85
-            );
-            bloomPass.threshold = 0.21;
-            bloomPass.strength = 1.2;
-            bloomPass.radius = 0.55;
-            composer.addPass(bloomPass);
-
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-            scene.add(ambientLight);
-
-            const pointLight1 = new THREE.PointLight(0xff69b4, 1.5, 100);
-            pointLight1.position.set(5, 5, 5);
-            scene.add(pointLight1);
-
-            const pointLight2 = new THREE.PointLight(0xffd700, 1, 100);
-            pointLight2.position.set(-5, -5, 5);
-            scene.add(pointLight2);
-
-            const pointLight3 = new THREE.PointLight(0xff1493, 0.8, 100);
-            pointLight3.position.set(0, 8, 0);
-            scene.add(pointLight3);
-
-            // Create Rose
-            rose = createRose();
-            scene.add(rose);
-
-            // Create Petal Particle System
-            petalSystem = createPetalSystem();
-            scene.add(petalSystem);
-
-            // Update name display
-            document.getElementById('nameDisplay').textContent = HER_NAME;
-
-            // Event listeners
-            window.addEventListener('resize', onWindowResize, false);
-
-            // Animation loop
-            animate();
+        // Check if Three.js is loaded
+        function checkThreeJS() {
+            return typeof THREE !== 'undefined' && 
+                   typeof THREE.Scene !== 'undefined' &&
+                   typeof THREE.WebGLRenderer !== 'undefined';
         }
 
-        // ============ CREATE PROCEDURAL ROSE ============
+        // Wait for Three.js to load
+        function waitForThreeJS() {
+            return new Promise((resolve) => {
+                let attempts = 0;
+                const checkInterval = setInterval(() => {
+                    if (checkThreeJS()) {
+                        clearInterval(checkInterval);
+                        threeLoaded = true;
+                        resolve(true);
+                    }
+                    attempts++;
+                    if (attempts > 50) {
+                        clearInterval(checkInterval);
+                        console.error("Three.js failed to load");
+                        resolve(false);
+                    }
+                }, 100);
+            });
+        }
+
+        async function initScene() {
+            try {
+                const loaded = await waitForThreeJS();
+                if (!loaded) {
+                    fallbackRender();
+                    return;
+                }
+
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x0a0005);
+
+                camera = new THREE.PerspectiveCamera(75, windowWidth / windowHeight, 0.1, 1000);
+                camera.position.z = 6;
+
+                renderer = new THREE.WebGLRenderer({ 
+                    antialias: true, 
+                    alpha: false,
+                    precision: 'highp'
+                });
+                renderer.setSize(windowWidth, windowHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                renderer.setClearColor(0x0a0005, 1);
+                document.body.appendChild(renderer.domElement);
+
+                // Setup Bloom
+                try {
+                    composer = new THREE.EffectComposer(renderer);
+                    const renderPass = new THREE.RenderPass(scene, camera);
+                    composer.addPass(renderPass);
+
+                    const bloomPass = new THREE.UnrealBloomPass(
+                        new THREE.Vector2(windowWidth, windowHeight),
+                        1.0,
+                        0.5,
+                        0.85
+                    );
+                    bloomPass.threshold = 0.2;
+                    bloomPass.strength = 0.8;
+                    bloomPass.radius = 0.4;
+                    composer.addPass(bloomPass);
+                } catch (e) {
+                    console.warn("Bloom setup failed, using simple render");
+                }
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                scene.add(ambientLight);
+
+                const pointLight1 = new THREE.PointLight(0xff69b4, 2, 100);
+                pointLight1.position.set(5, 5, 5);
+                scene.add(pointLight1);
+
+                const pointLight2 = new THREE.PointLight(0xffd700, 1.5, 100);
+                pointLight2.position.set(-5, -5, 5);
+                scene.add(pointLight2);
+
+                const pointLight3 = new THREE.PointLight(0xff1493, 1, 100);
+                pointLight3.position.set(0, 8, 3);
+                scene.add(pointLight3);
+
+                // Create Rose
+                rose = createRose();
+                scene.add(rose);
+
+                // Create Petal Particle System
+                petalSystem = createPetalSystem();
+                scene.add(petalSystem);
+
+                document.getElementById('nameDisplay').textContent = HER_NAME;
+
+                window.addEventListener('resize', onWindowResize, false);
+
+                animate();
+            } catch (error) {
+                console.error("Init error:", error);
+                fallbackRender();
+            }
+        }
+
         function createRose() {
             const rose = new THREE.Group();
 
-            // Create stem
-            const stemGeometry = new THREE.CylinderGeometry(0.1, 0.15, 6, 16);
-            const stemMaterial = new THREE.MeshStandardMaterial({
+            const stemGeometry = new THREE.CylinderGeometry(0.12, 0.18, 7, 16);
+            const stemMaterial = new THREE.MeshPhongMaterial({
                 color: 0x2d5016,
-                roughness: 0.8,
-                metalness: 0.2
+                shininess: 30
             });
             const stem = new THREE.Mesh(stemGeometry, stemMaterial);
-            stem.position.y = -3;
-            stem.castShadow = true;
-            stem.receiveShadow = true;
+            stem.position.y = -2.5;
             rose.add(stem);
 
-            // Create petals using a spiral approach
             const petalCount = 200;
             const petalGroup = new THREE.Group();
 
@@ -199,11 +232,9 @@
                 petalGroup.add(petal);
             }
 
-            petalGroup.position.y = 1.5;
+            petalGroup.position.y = 1.2;
             rose.add(petalGroup);
-
-            // Rotate group for better presentation
-            rose.rotation.x = -0.3;
+            rose.rotation.x = -0.25;
 
             return rose;
         }
@@ -212,158 +243,197 @@
             const u = index / total;
             const v = Math.random();
 
-            // Parametric rose surface
-            const phi = u * Math.PI * 12;
+            const phi = u * Math.PI * 16;
             const theta = v * Math.PI;
-
-            const k = 5;
+            const k = 6;
             const r = Math.cos(k * phi / 2);
-            const amplitude = Math.sin(theta) * r * 0.5;
+            const amplitude = Math.sin(theta) * r * 0.6;
 
-            const x = amplitude * Math.cos(phi) * Math.sin(theta) * 1.5;
-            const y = amplitude * Math.sin(phi) * Math.sin(theta) * 1.5;
-            const z = Math.cos(theta) * r * 0.8;
+            const x = amplitude * Math.cos(phi) * Math.sin(theta) * 2;
+            const y = amplitude * Math.sin(phi) * Math.sin(theta) * 2;
+            const z = Math.cos(theta) * r * 1;
 
-            // Create petal geometry
-            const geometry = new THREE.SphereGeometry(0.15, 8, 8);
+            const geometry = new THREE.SphereGeometry(0.18, 12, 12);
 
-            // Custom shader for velvety texture
-            const material = new THREE.ShaderMaterial({
-                uniforms: {
-                    color: { value: new THREE.Color(0xff1493 + Math.random() * 0x00aa00) }
-                },
-                vertexShader: `
-                    varying vec3 vNormal;
-                    varying vec3 vPosition;
+            const color = new THREE.Color();
+            color.setHSL(0.97 + Math.random() * 0.03, 0.9, 0.5 + Math.random() * 0.15);
 
-                    void main() {
-                        vNormal = normalize(normalMatrix * normal);
-                        vPosition = position;
-                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                    }
-                `,
-                fragmentShader: `
-                    uniform vec3 color;
-                    varying vec3 vNormal;
-                    varying vec3 vPosition;
-
-                    void main() {
-                        vec3 normal = normalize(vNormal);
-                        float velvet = pow(length(cross(normal, vec3(0.0, 1.0, 0.0))), 2.0) * 0.8;
-                        vec3 finalColor = color * (0.6 + velvet * 0.4);
-                        gl_FragColor = vec4(finalColor, 1.0);
-                    }
-                `
+            const material = new THREE.MeshPhongMaterial({
+                color: color,
+                emissive: new THREE.Color(0xff1493),
+                emissiveIntensity: 0.3,
+                shininess: 100
             });
 
             const petal = new THREE.Mesh(geometry, material);
             petal.position.set(x, y, z);
             petal.scale.set(
-                0.8 + Math.sin(index * 0.1) * 0.3,
-                0.9 + Math.cos(index * 0.15) * 0.4,
-                0.7 + Math.sin(index * 0.2) * 0.2
+                0.7 + Math.sin(index * 0.1) * 0.4,
+                0.8 + Math.cos(index * 0.15) * 0.5,
+                0.65
             );
-            petal.rotation.set(
-                Math.random() * Math.PI,
-                Math.random() * Math.PI,
-                Math.random() * Math.PI
-            );
-            petal.castShadow = true;
-            petal.receiveShadow = true;
+            petal.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
 
             return petal;
         }
 
-        // ============ PETAL PARTICLE SYSTEM ============
         function createPetalSystem() {
-            const particleCount = 2000;
+            const particleCount = 1200;
             const particles = new THREE.BufferGeometry();
             const positions = new Float32Array(particleCount * 3);
             const velocities = new Float32Array(particleCount * 3);
 
             for (let i = 0; i < particleCount; i++) {
                 const i3 = i * 3;
+                positions[i3] = (Math.random() - 0.5) * 50;
+                positions[i3 + 1] = Math.random() * 50;
+                positions[i3 + 2] = (Math.random() - 0.5) * 30;
 
-                positions[i3] = (Math.random() - 0.5) * 60;
-                positions[i3 + 1] = Math.random() * 40;
-                positions[i3 + 2] = (Math.random() - 0.5) * 40;
-
-                velocities[i3] = (Math.random() - 0.5) * 0.1;
-                velocities[i3 + 1] = -0.05 - Math.random() * 0.15;
-                velocities[i3 + 2] = (Math.random() - 0.5) * 0.1;
+                velocities[i3] = (Math.random() - 0.5) * 0.08;
+                velocities[i3 + 1] = -0.08 - Math.random() * 0.12;
+                velocities[i3 + 2] = (Math.random() - 0.5) * 0.08;
             }
 
             particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             particles.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
 
             const particleMaterial = new THREE.PointsMaterial({
-                size: 0.15,
+                size: 0.3,
                 color: 0xff69b4,
                 transparent: true,
-                opacity: 0.6,
-                sizeAttenuation: true
+                opacity: 0.8
             });
 
             const particleSystem = new THREE.Points(particles, particleMaterial);
             particleSystem.userData.velocities = velocities;
-
             return particleSystem;
         }
 
-        // ============ ANIMATION LOOP ============
         function animate() {
             requestAnimationFrame(animate);
 
-            // Rotate rose
             if (rose) {
-                rose.rotation.z += 0.002;
-                rose.children[1].rotation.y += 0.003;
+                rose.rotation.z += 0.0015;
+                if (rose.children[1]) rose.children[1].rotation.y += 0.0025;
             }
 
-            // Animate particles
             if (petalSystem) {
                 const positions = petalSystem.geometry.attributes.position.array;
                 const velocities = petalSystem.userData.velocities;
 
                 for (let i = 0; i < positions.length; i += 3) {
-                    // Wind simulation
-                    const windForce = Math.sin(Date.now() * 0.0003 + positions[i]) * 0.02;
-
+                    const windForce = Math.sin(Date.now() * 0.0003 + positions[i]) * 0.015;
                     positions[i] += velocities[i] + windForce;
                     positions[i + 1] += velocities[i + 1];
                     positions[i + 2] += velocities[i + 2];
 
-                    // Wrap around
-                    if (positions[i + 1] < -10) {
-                        positions[i + 1] = 40;
-                        positions[i] = (Math.random() - 0.5) * 60;
+                    if (positions[i + 1] < -15) {
+                        positions[i + 1] = 50;
+                        positions[i] = (Math.random() - 0.5) * 50;
                     }
 
-                    // Swirl effect
-                    velocities[i] += Math.sin(Date.now() * 0.0002 + positions[i]) * 0.001;
+                    velocities[i] += Math.sin(Date.now() * 0.0002 + positions[i]) * 0.0008;
                 }
-
                 petalSystem.geometry.attributes.position.needsUpdate = true;
             }
 
-            // Render with bloom
-            composer.render();
+            if (composer) {
+                composer.render();
+            } else if (renderer) {
+                renderer.render(scene, camera);
+            }
         }
 
-        // ============ RESPONSIVE HANDLING ============
         function onWindowResize() {
             windowWidth = window.innerWidth;
             windowHeight = window.innerHeight;
 
             camera.aspect = windowWidth / windowHeight;
             camera.updateProjectionMatrix();
-
             renderer.setSize(windowWidth, windowHeight);
-            composer.setSize(windowWidth, windowHeight);
+            
+            if (composer) composer.setSize(windowWidth, windowHeight);
         }
 
-        // Initialize
-        window.addEventListener('DOMContentLoaded', init);
+        function fallbackRender() {
+            console.log("Using fallback rendering (Canvas 2D)");
+            const canvas = document.createElement('canvas');
+            canvas.width = windowWidth;
+            canvas.height = windowHeight;
+            canvas.style.cssText = "display:block;width:100%;height:100%;";
+            document.body.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            const particles = [];
+
+            for (let i = 0; i < 200; i++) {
+                particles.push({
+                    x: Math.random() * windowWidth,
+                    y: Math.random() * windowHeight,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: Math.random() * 1 + 1,
+                    size: Math.random() * 3 + 1,
+                    opacity: Math.random() * 0.5 + 0.3
+                });
+            }
+
+            function drawRose() {
+                const cx = windowWidth / 2;
+                const cy = windowHeight / 2;
+
+                ctx.fillStyle = '#0a0005';
+                ctx.fillRect(0, 0, windowWidth, windowHeight);
+
+                // Draw rose using circles
+                const petals = 30;
+                const radius = 40;
+                for (let i = 0; i < petals; i++) {
+                    const angle = (i / petals) * Math.PI * 2;
+                    const x = cx + Math.cos(angle) * radius;
+                    const y = cy + Math.sin(angle) * radius;
+
+                    ctx.fillStyle = `hsla(${350 + i}, 100%, ${50 - i}%, 0.8)`;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 15, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = '#2d5016';
+                ctx.fillRect(cx - 3, cy, 6, 100);
+
+                // Draw particles
+                particles.forEach(p => {
+                    ctx.fillStyle = `rgba(255, 105, 180, ${p.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    p.y += p.vy;
+                    p.x += p.vx;
+
+                    if (p.y > windowHeight) {
+                        p.y = -10;
+                        p.x = Math.random() * windowWidth;
+                    }
+
+                    p.vx += (Math.random() - 0.5) * 0.1;
+                });
+            }
+
+            function fallbackAnimate() {
+                drawRose();
+                requestAnimationFrame(fallbackAnimate);
+            }
+
+            fallbackAnimate();
+        }
+
+        // Start initialization
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initScene);
+        } else {
+            initScene();
+        }
     </script>
 </body>
 </html>
