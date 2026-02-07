@@ -3,436 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rose Day 🌹</title>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes:wght@400&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <title>For My Love</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        * {
+        /* APP STYLING */
+        body, html {
             margin: 0;
             padding: 0;
+            height: 100%;
+            font-family: 'Poppins', sans-serif;
+            background-color: #2c001e;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* MOBILE FRAME */
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            max-height: 850px;
+            background: #fff0f5;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* SCREENS */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* CHAT SCREEN STYLES */
+        .chat-header {
+            width: 100%;
+            padding: 15px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            z-index: 10;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: #ff3366;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .chat-body {
+            background: url('https://i.pinimg.com/originals/97/c0/07/97c00726d1ac58c18729218c5e619942.jpg'); /* WhatsApp-like bg */
+            background-size: cover;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
             box-sizing: border-box;
         }
 
-        body {
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            background: linear-gradient(135deg, #1a0a1f 0%, #2d1b3d 100%);
-            font-family: 'Cinzel', serif;
+        .msg {
+            background: #fff;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .msg.her { align-self: flex-start; border-top-left-radius: 0; }
+        .msg.me { align-self: flex-end; background: #dcf8c6; border-top-right-radius: 0; }
+
+        .time { font-size: 0.7rem; color: #999; margin-top: 5px; text-align: right; }
+
+        .gift-btn {
+            background: #ff3366;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 51, 102, 0.4);
+            animation: pulse 2s infinite;
         }
 
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-
-        #nameDisplay {
-            position: absolute;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-family: 'Great Vibes', cursive;
-            font-size: clamp(24px, 8vw, 72px);
-            color: #ffd700;
+        /* STORY CARDS STYLES */
+        .card-content {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px 20px;
+            border-radius: 20px;
             text-align: center;
-            text-shadow: 
-                0 0 10px #ffd700,
-                0 0 20px #ff1493,
-                0 0 30px #ff69b4,
-                0 0 40px #ffd700;
-            letter-spacing: 2px;
-            animation: glowPulse 3s ease-in-out infinite;
-            pointer-events: none;
-            z-index: 10;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
         }
 
-        #subtitle {
+        .bg-video {
             position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-family: 'Cinzel', serif;
-            font-size: clamp(12px, 3vw, 18px);
-            color: #ff69b4;
-            text-align: center;
-            text-shadow: 0 0 10px #ff69b4;
-            pointer-events: none;
-            z-index: 10;
-            letter-spacing: 3px;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: -1;
         }
+        
+        /* Solid color backgrounds for slides */
+        #screen-start { background: #96253c; }
+        #screen-1 { background: #F8BBD0; }
+        #screen-2 { background: #E1BEE7; }
+        #screen-3 { background: #FFCDD2; }
+        #screen-4 { background: #C5CAE9; }
+        #screen-end { background: #ff3366; }
 
-        @keyframes glowPulse {
-            0%, 100% {
-                text-shadow: 
-                    0 0 10px #ffd700,
-                    0 0 20px #ff1493,
-                    0 0 30px #ff69b4,
-                    0 0 40px #ffd700;
-            }
-            50% {
-                text-shadow: 
-                    0 0 20px #ffd700,
-                    0 0 40px #ff1493,
-                    0 0 60px #ff69b4,
-                    0 0 80px #ffd700;
-            }
+        h2 { color: #880e4f; margin-bottom: 10px; }
+        p { color: #555; line-height: 1.6; margin-bottom: 20px; }
+        
+        .nav-btn {
+            background: linear-gradient(45deg, #ff3366, #ff5e62);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
         }
+        .nav-btn:active { transform: scale(0.95); }
 
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ffd700;
-            font-size: 18px;
-            z-index: 100;
-        }
+        .rose-icon { font-size: 80px; margin: 20px 0; display: block; animation: float 3s ease-in-out infinite; }
+
+        /* ANIMATIONS */
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
     </style>
 </head>
 <body>
-    <div id="nameDisplay"></div>
-    <div id="subtitle">Happy Rose Day</div>
 
-    <script src="https://unpkg.com/three@r128/build/three.min.js"></script>
-    <script src="https://unpkg.com/three@r128/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://unpkg.com/three@r128/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://unpkg.com/three@r128/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <div class="app-container">
+        
+        <div id="screen-chat" class="screen active">
+            <div class="chat-header">
+                <div class="avatar">❤️</div>
+                <div style="margin-left: 10px;">
+                    <div style="font-weight: bold;">My Love</div>
+                    <div style="font-size: 0.8rem; color: #25d366;">Online</div>
+                </div>
+            </div>
+            <div class="chat-body">
+                <div class="msg her">
+                    Hey! Do you know what day it is? 🤨
+                    <div class="time">10:00 AM</div>
+                </div>
+                <div class="msg me">
+                    Of course! It's Rose Day! 🌹
+                    <div class="time">10:01 AM</div>
+                </div>
+                <div class="msg her">
+                    So... where is my rose? 🥺
+                    <div class="time">10:01 AM</div>
+                </div>
+                <button class="gift-btn" onclick="nextScreen('screen-chat', 'screen-start')">
+                    Tap to Open Gift 🎁
+                </button>
+            </div>
+        </div>
+
+        <div id="screen-start" class="screen">
+            <div class="card-content">
+                <div style="font-size: 50px;">🌹</div>
+                <h2>Hey Beautiful!</h2>
+                <p>I have a little surprise for you today...</p>
+                <button class="nav-btn" onclick="nextScreen('screen-start', 'screen-1')">Click to Start</button>
+            </div>
+        </div>
+
+        <div id="screen-1" class="screen">
+            <div class="card-content">
+                <h2>Do you know?</h2>
+                <p>Today is <b>Rose Day</b>, the beginning of a week full of love.</p>
+                <p>But for me, every day is special because you are in it.</p>
+                <button class="nav-btn" onclick="nextScreen('screen-1', 'screen-2')">Tell me more ❤️</button>
+            </div>
+        </div>
+
+        <div id="screen-2" class="screen">
+            <div class="card-content">
+                <h2>Every Moment...</h2>
+                <p>Spending time with you feels like a beautiful dream I never want to wake up from.</p>
+                <p>Even though we are miles apart, you are always in my heart.</p>
+                <button class="nav-btn" onclick="nextScreen('screen-2', 'screen-3')">Continue ✨</button>
+            </div>
+        </div>
+
+        <div id="screen-3" class="screen">
+            <div class="card-content">
+                <h2>A Rose For You</h2>
+                <span class="rose-icon">🌹</span>
+                <p>Roses are red, violets are blue, I am so lucky to have a partner like you.</p>
+                <button class="nav-btn" onclick="nextScreen('screen-3', 'screen-4')">Accept Rose 🌹</button>
+            </div>
+        </div>
+
+        <div id="screen-4" class="screen">
+            <div class="card-content">
+                <h2>My Promise</h2>
+                <p>Just like a rose, my love for you will bloom forever.</p>
+                <p>No matter the thorns (hard times), I will always hold on to you.</p>
+                <button class="nav-btn" onclick="nextScreen('screen-4', 'screen-end')">One Last Thing ✨</button>
+            </div>
+        </div>
+
+        <div id="screen-end" class="screen">
+            <div class="card-content" style="background: white;">
+                <img src="https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif" style="width: 100%; border-radius: 10px;">
+                <h1 style="color: #ff3366; margin-top: 20px;">Happy Rose Day!</h1>
+                <h3 id="finalName">Name</h3>
+                <p>May your life be as beautiful and fragrant as a blooming rose. I love you!</p>
+                <button class="nav-btn" onclick="location.reload()">Replay 🔄</button>
+            </div>
+        </div>
+
+    </div>
 
     <script>
-        const HER_NAME = "Rose Day Queen";
-        let scene, camera, renderer, composer;
-        let rose, petalSystem;
-        let windowWidth = window.innerWidth;
-        let windowHeight = window.innerHeight;
-        let threeLoaded = false;
+        // --- CONFIGURATION ---
+        const NAME = "Enter Name Here"; 
+        document.getElementById('finalName').innerText = NAME;
+        // ---------------------
 
-        // Check if Three.js is loaded
-        function checkThreeJS() {
-            return typeof THREE !== 'undefined' && 
-                   typeof THREE.Scene !== 'undefined' &&
-                   typeof THREE.WebGLRenderer !== 'undefined';
-        }
+        function nextScreen(hideId, showId) {
+            const current = document.getElementById(hideId);
+            const next = document.getElementById(showId);
 
-        // Wait for Three.js to load
-        function waitForThreeJS() {
-            return new Promise((resolve) => {
-                let attempts = 0;
-                const checkInterval = setInterval(() => {
-                    if (checkThreeJS()) {
-                        clearInterval(checkInterval);
-                        threeLoaded = true;
-                        resolve(true);
-                    }
-                    attempts++;
-                    if (attempts > 50) {
-                        clearInterval(checkInterval);
-                        console.error("Three.js failed to load");
-                        resolve(false);
-                    }
-                }, 100);
-            });
-        }
-
-        async function initScene() {
-            try {
-                const loaded = await waitForThreeJS();
-                if (!loaded) {
-                    fallbackRender();
-                    return;
-                }
-
-                scene = new THREE.Scene();
-                scene.background = new THREE.Color(0x0a0005);
-
-                camera = new THREE.PerspectiveCamera(75, windowWidth / windowHeight, 0.1, 1000);
-                camera.position.z = 6;
-
-                renderer = new THREE.WebGLRenderer({ 
-                    antialias: true, 
-                    alpha: false,
-                    precision: 'highp'
-                });
-                renderer.setSize(windowWidth, windowHeight);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                renderer.setClearColor(0x0a0005, 1);
-                document.body.appendChild(renderer.domElement);
-
-                // Setup Bloom
-                try {
-                    composer = new THREE.EffectComposer(renderer);
-                    const renderPass = new THREE.RenderPass(scene, camera);
-                    composer.addPass(renderPass);
-
-                    const bloomPass = new THREE.UnrealBloomPass(
-                        new THREE.Vector2(windowWidth, windowHeight),
-                        1.0,
-                        0.5,
-                        0.85
-                    );
-                    bloomPass.threshold = 0.2;
-                    bloomPass.strength = 0.8;
-                    bloomPass.radius = 0.4;
-                    composer.addPass(bloomPass);
-                } catch (e) {
-                    console.warn("Bloom setup failed, using simple render");
-                }
-
-                // Lighting
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-                scene.add(ambientLight);
-
-                const pointLight1 = new THREE.PointLight(0xff69b4, 2, 100);
-                pointLight1.position.set(5, 5, 5);
-                scene.add(pointLight1);
-
-                const pointLight2 = new THREE.PointLight(0xffd700, 1.5, 100);
-                pointLight2.position.set(-5, -5, 5);
-                scene.add(pointLight2);
-
-                const pointLight3 = new THREE.PointLight(0xff1493, 1, 100);
-                pointLight3.position.set(0, 8, 3);
-                scene.add(pointLight3);
-
-                // Create Rose
-                rose = createRose();
-                scene.add(rose);
-
-                // Create Petal Particle System
-                petalSystem = createPetalSystem();
-                scene.add(petalSystem);
-
-                document.getElementById('nameDisplay').textContent = HER_NAME;
-
-                window.addEventListener('resize', onWindowResize, false);
-
-                animate();
-            } catch (error) {
-                console.error("Init error:", error);
-                fallbackRender();
-            }
-        }
-
-        function createRose() {
-            const rose = new THREE.Group();
-
-            const stemGeometry = new THREE.CylinderGeometry(0.12, 0.18, 7, 16);
-            const stemMaterial = new THREE.MeshPhongMaterial({
-                color: 0x2d5016,
-                shininess: 30
-            });
-            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
-            stem.position.y = -2.5;
-            rose.add(stem);
-
-            const petalCount = 200;
-            const petalGroup = new THREE.Group();
-
-            for (let i = 0; i < petalCount; i++) {
-                const petal = createPetal(i, petalCount);
-                petalGroup.add(petal);
-            }
-
-            petalGroup.position.y = 1.2;
-            rose.add(petalGroup);
-            rose.rotation.x = -0.25;
-
-            return rose;
-        }
-
-        function createPetal(index, total) {
-            const u = index / total;
-            const v = Math.random();
-
-            const phi = u * Math.PI * 16;
-            const theta = v * Math.PI;
-            const k = 6;
-            const r = Math.cos(k * phi / 2);
-            const amplitude = Math.sin(theta) * r * 0.6;
-
-            const x = amplitude * Math.cos(phi) * Math.sin(theta) * 2;
-            const y = amplitude * Math.sin(phi) * Math.sin(theta) * 2;
-            const z = Math.cos(theta) * r * 1;
-
-            const geometry = new THREE.SphereGeometry(0.18, 12, 12);
-
-            const color = new THREE.Color();
-            color.setHSL(0.97 + Math.random() * 0.03, 0.9, 0.5 + Math.random() * 0.15);
-
-            const material = new THREE.MeshPhongMaterial({
-                color: color,
-                emissive: new THREE.Color(0xff1493),
-                emissiveIntensity: 0.3,
-                shininess: 100
-            });
-
-            const petal = new THREE.Mesh(geometry, material);
-            petal.position.set(x, y, z);
-            petal.scale.set(
-                0.7 + Math.sin(index * 0.1) * 0.4,
-                0.8 + Math.cos(index * 0.15) * 0.5,
-                0.65
-            );
-            petal.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-
-            return petal;
-        }
-
-        function createPetalSystem() {
-            const particleCount = 1200;
-            const particles = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-            const velocities = new Float32Array(particleCount * 3);
-
-            for (let i = 0; i < particleCount; i++) {
-                const i3 = i * 3;
-                positions[i3] = (Math.random() - 0.5) * 50;
-                positions[i3 + 1] = Math.random() * 50;
-                positions[i3 + 2] = (Math.random() - 0.5) * 30;
-
-                velocities[i3] = (Math.random() - 0.5) * 0.08;
-                velocities[i3 + 1] = -0.08 - Math.random() * 0.12;
-                velocities[i3 + 2] = (Math.random() - 0.5) * 0.08;
-            }
-
-            particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            particles.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
-
-            const particleMaterial = new THREE.PointsMaterial({
-                size: 0.3,
-                color: 0xff69b4,
-                transparent: true,
-                opacity: 0.8
-            });
-
-            const particleSystem = new THREE.Points(particles, particleMaterial);
-            particleSystem.userData.velocities = velocities;
-            return particleSystem;
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            if (rose) {
-                rose.rotation.z += 0.0015;
-                if (rose.children[1]) rose.children[1].rotation.y += 0.0025;
-            }
-
-            if (petalSystem) {
-                const positions = petalSystem.geometry.attributes.position.array;
-                const velocities = petalSystem.userData.velocities;
-
-                for (let i = 0; i < positions.length; i += 3) {
-                    const windForce = Math.sin(Date.now() * 0.0003 + positions[i]) * 0.015;
-                    positions[i] += velocities[i] + windForce;
-                    positions[i + 1] += velocities[i + 1];
-                    positions[i + 2] += velocities[i + 2];
-
-                    if (positions[i + 1] < -15) {
-                        positions[i + 1] = 50;
-                        positions[i] = (Math.random() - 0.5) * 50;
-                    }
-
-                    velocities[i] += Math.sin(Date.now() * 0.0002 + positions[i]) * 0.0008;
-                }
-                petalSystem.geometry.attributes.position.needsUpdate = true;
-            }
-
-            if (composer) {
-                composer.render();
-            } else if (renderer) {
-                renderer.render(scene, camera);
-            }
-        }
-
-        function onWindowResize() {
-            windowWidth = window.innerWidth;
-            windowHeight = window.innerHeight;
-
-            camera.aspect = windowWidth / windowHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(windowWidth, windowHeight);
-            
-            if (composer) composer.setSize(windowWidth, windowHeight);
-        }
-
-        function fallbackRender() {
-            console.log("Using fallback rendering (Canvas 2D)");
-            const canvas = document.createElement('canvas');
-            canvas.width = windowWidth;
-            canvas.height = windowHeight;
-            canvas.style.cssText = "display:block;width:100%;height:100%;";
-            document.body.appendChild(canvas);
-
-            const ctx = canvas.getContext('2d');
-            const particles = [];
-
-            for (let i = 0; i < 200; i++) {
-                particles.push({
-                    x: Math.random() * windowWidth,
-                    y: Math.random() * windowHeight,
-                    vx: (Math.random() - 0.5) * 2,
-                    vy: Math.random() * 1 + 1,
-                    size: Math.random() * 3 + 1,
-                    opacity: Math.random() * 0.5 + 0.3
-                });
-            }
-
-            function drawRose() {
-                const cx = windowWidth / 2;
-                const cy = windowHeight / 2;
-
-                ctx.fillStyle = '#0a0005';
-                ctx.fillRect(0, 0, windowWidth, windowHeight);
-
-                // Draw rose using circles
-                const petals = 30;
-                const radius = 40;
-                for (let i = 0; i < petals; i++) {
-                    const angle = (i / petals) * Math.PI * 2;
-                    const x = cx + Math.cos(angle) * radius;
-                    const y = cy + Math.sin(angle) * radius;
-
-                    ctx.fillStyle = `hsla(${350 + i}, 100%, ${50 - i}%, 0.8)`;
-                    ctx.beginPath();
-                    ctx.arc(x, y, 15, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                ctx.fillStyle = '#2d5016';
-                ctx.fillRect(cx - 3, cy, 6, 100);
-
-                // Draw particles
-                particles.forEach(p => {
-                    ctx.fillStyle = `rgba(255, 105, 180, ${p.opacity})`;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    p.y += p.vy;
-                    p.x += p.vx;
-
-                    if (p.y > windowHeight) {
-                        p.y = -10;
-                        p.x = Math.random() * windowWidth;
-                    }
-
-                    p.vx += (Math.random() - 0.5) * 0.1;
-                });
-            }
-
-            function fallbackAnimate() {
-                drawRose();
-                requestAnimationFrame(fallbackAnimate);
-            }
-
-            fallbackAnimate();
-        }
-
-        // Start initialization
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initScene);
-        } else {
-            initScene();
+            // Fade out current
+            current.style.opacity = 0;
+            setTimeout(() => {
+                current.classList.remove('active');
+                current.style.display = "none"; // Ensure it's gone
+                
+                // Show next
+                next.style.display = "flex";
+                // Small delay to allow display:flex to apply before opacity transition
+                setTimeout(() => {
+                    next.classList.add('active');
+                }, 50);
+            }, 500);
         }
     </script>
 </body>
